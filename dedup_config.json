@@ -1,0 +1,43 @@
+{
+    "entities": [
+        {
+            "name": "GenericJob",
+            "query": [
+                "SELECT genJob.no as JobNo, genJob.property2 as JobType, genJob.description as JobDescription, genJob.property13 as JobOutline, genJob.property18 as Frequency,", 
+                " equipment.Description as EquipmentDescription, equipment.Property6 as Model",
+                " FROM DealSheet genJobComp",
+                " INNER JOIN DealSheet genJob ON genJob.Id = genJobComp.parentId",
+                " INNER JOIN DealSheetProperty dsp ON genJobComp.Id = dsp.dealSheetId AND dsp.shapeitPropertyId='ConsumedComponentIdentifier'",
+                " INNER JOIN Product equipment ON dsp.propertyValue = equipment.uniqueIdentifier",
+                " WHERE", 
+                " genJob .SourceId='GENJOB'",
+                " AND", 
+                " genJobComp.SourceId='GENJOBComponent'",
+                " AND",
+                " equipment.SourceId='GenericComponent'",
+                " AND genJobComp.SourceId='GENJOBComponent'",
+                " AND equipment.property3 = 'ComponentType.Equipment'"
+            ],
+            "matching_fields": [{"field" : "JobType", "type": "Text"},
+                       {"field" : "JobDescription", "type": "Text", "has missing" : true},
+                       {"field" : "JobOutline", "type": "Text", "has missing" : true},
+                       {"field" : "Frequency", "type": "String", "has missing": true},
+                       {"field" : "EquipmentDescription", "type": "String", "has missing": true},
+                       {"field" : "Model", "type": "String", "has missing": true}],
+            "output_fields": ["JobNo", "JobDescription", "JobOutline", "Frequency", "EquipmentDescription", "Model"],
+            "normalizers": ["clean_punctuation", "frequency_normalizer"]
+        },
+        {
+            "name": "ComponentJob",
+            "query": [
+                "select no as JobNo, property2 as JobType, description as JobDescription, property13 as JobOutline, property18 as Frequency from DealSheet where sourceId = 'ComponentJob'"
+            ],
+            "matching_fields":  [{"field" : "JobType", "type": "Text"},
+                {"field" : "JobDescription", "type": "Text", "has missing" : true},
+                {"field" : "JobOutline", "type": "Text", "has missing" : true},
+                {"field" : "Frequency", "type": "String", "has missing": true}],
+            "output_fields": ["JobNo", "JobDescription", "JobOutline", "Frequency"],
+            "normalizers": ["clean_punctuation", "frequency_normalizer"]
+        }
+    ]
+}

@@ -1,0 +1,8 @@
+venv/
+.vscode/
+exmar_settings
+*_training.json
+*_output.csv
+dedupe_settings
+__pycache__/
+*_settings
