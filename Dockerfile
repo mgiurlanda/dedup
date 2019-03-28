@@ -5,6 +5,8 @@ RUN adduser -D dedup
 
 WORKDIR /home/dedup
 
+RUN apk --update add --no-cache g++
+
 COPY requirements.txt requirements.txt
 RUN python -m venv venv
 RUN pip install -r requirements.txt

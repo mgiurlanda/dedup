@@ -4,7 +4,7 @@ import dedupe
 import app.cleansing.normalizers as normalizers
 import pandas as pd
 from flask import current_app
-#from app import db
+from app import db
 
 def run(config, entity_name):
     matched_entity = {}
@@ -13,10 +13,9 @@ def run(config, entity_name):
             matched_entity = entity
             break
     if (matched_entity):
-        entity_df = pd.read_sql_query(matched_entity["query"], current_app.source_connection)
+        entity_df = pd.read_sql_query(matched_entity["query"], db.engine)
         for normalizer in matched_entity['normalizers']:
             entity_df = getattr(normalizers, normalizer)(entity_df)
-        print(entity_df.head(5))
         deduper = EntityDeduper(entity_df, matched_entity)
         if (deduper.need_sampling):
             deduper.sample()
@@ -104,8 +103,8 @@ class EntityDeduper:
             canonical_rep = dedupe.canonicalize(cluster_d)
             for record_id, score in zip(id_set, scores):
                 cluster_membership[record_id] = {
-                    "cluster id" : cluster_id,
-                    "canonical representation" : canonical_rep,
+                    "cluster_id" : cluster_id,
+                    "canonical_representation" : canonical_rep,
                     "confidence": score
                 }
 
@@ -119,18 +118,18 @@ class EntityDeduper:
 
         dfa.rename(columns={0: 'Id'}, inplace=True)
             
-        dfa['cluster id'] = dfa[1].apply(lambda x: x["cluster id"])
+        dfa['cluster_id'] = dfa[1].apply(lambda x: x["cluster_id"])
         dfa['confidence'] = dfa[1].apply(lambda x: x["confidence"])
 
         canonical_list=[]   
 
-        for i in dfa[1][0]['canonical representation'].keys():
+        for i in dfa[1][0]['canonical_representation'].keys():
             canonical_list.append(i)
             dfa[i + ' - ' + 'canonical'] = None
-            dfa[i + ' - ' + 'canonical'] = dfa[1].apply(lambda x: x['canonical representation'][i])
+            dfa[i + ' - ' + 'canonical'] = dfa[1].apply(lambda x: x['canonical_representation'][i])
 
         dfa.set_index('Id', inplace=True)
         self.dataframe = self.dataframe.join(dfa)
-        self.dataframe[self.entity["output_fields"] + ['cluster id', 'confidence']].to_csv(self.entity["name"].lower()+"_output.csv")
-        #self.dataframe[self.entity["output_fields"] + ['cluster id', 'confidence']].to_sql(self.entity["name"].lower()+"_output", con=db.engine, if_exists='replace')
+        #self.dataframe[self.entity["output_fields"] + ['cluster id', 'confidence']].to_csv(self.entity["name"].lower()+"_output.csv")
+        self.dataframe[self.entity["output_fields"] + ['cluster_id', 'confidence']].to_sql(self.entity["name"].lower()+"_output", con=db.engine, if_exists='replace')
         return self.dataframe
